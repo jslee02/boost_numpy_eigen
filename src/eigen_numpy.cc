@@ -1,5 +1,6 @@
 #include "eigen_numpy.h"
 
+#include <boost/python.hpp>
 #include <Eigen/Eigen>
 #if EIGEN_VERSION_AT_LEAST(3, 3, 0)
 #include <unsupported/Eigen/CXX11/Tensor>
@@ -385,44 +386,53 @@ struct EigenTensorFromPython {
 
 #define EIGEN_MATRIX_CONVERTER(Type) \
   EigenMatrixFromPython<Type>();  \
-  bp::to_python_converter<Type, EigenMatrixToPython<Type> >();
+  bp::to_python_converter<Type, EigenMatrixToPython<Type> >(); \
+  void ANONYMOUS_FUNCTION()
 
 #define EIGEN_TRANSFORM_CONVERTER(Type) \
   EigenTransformFromPython<Type>();  \
-  bp::to_python_converter<Type, EigenTransformToPython<Type> >();
+  bp::to_python_converter<Type, EigenTransformToPython<Type> >(); \
+  void ANONYMOUS_FUNCTION()
 
 #define MAT_CONV(R, C, T) \
   typedef Matrix<T, R, C> Matrix ## R ## C ## T; \
-  EIGEN_MATRIX_CONVERTER(Matrix ## R ## C ## T);
+  EIGEN_MATRIX_CONVERTER(Matrix ## R ## C ## T); \
+  void ANONYMOUS_FUNCTION()
 
 // This require a MAT_CONV for that Matrix type to be registered first
 #define MAP_CONV(R, C, T) \
   typedef Map<Matrix ## R ## C ## T> Map ## R ## C ## T; \
-  EIGEN_MATRIX_CONVERTER(Map ## R ## C ## T);
+  EIGEN_MATRIX_CONVERTER(Map ## R ## C ## T); \
+  void ANONYMOUS_FUNCTION()
 
 #define T_CONV(R, C, T) \
   typedef Transpose<Matrix ## R ## C ## T> Transpose ## R ## C ## T; \
-  EIGEN_MATRIX_CONVERTER(Transpose ## R ## C ## T);
+  EIGEN_MATRIX_CONVERTER(Transpose ## R ## C ## T); \
+  void ANONYMOUS_FUNCTION()
 
 #define BLOCK_CONV(R, C, BR, BC, T) \
   typedef Block<Matrix ## R ## C ## T, BR, BC> Block ## R ## C ## BR ## BC ## T; \
-  EIGEN_MATRIX_CONVERTER(Block ## R ## C ## BR ## BC ## T);
+  EIGEN_MATRIX_CONVERTER(Block ## R ## C ## BR ## BC ## T); \
+  void ANONYMOUS_FUNCTION()
 
 #if EIGEN_VERSION_AT_LEAST(3, 3, 0)
 
 //For two-way Eigen <--> numpy Tensor converters
 #define EIGEN_TENSOR_CONVERTER(Type) \
   EigenTensorFromPython<Type>(); \
-  bp::to_python_converter<Type, EigenTensorToPython<Type> >();
+  bp::to_python_converter<Type, EigenTensorToPython<Type> >(); \
+  void ANONYMOUS_FUNCTION()
 
 //For one-way Eigen --> numpy converters (for row-major Eigen stuff)
 #define TENSOR_ROW_MAJOR_CONV(T, D)\
   typedef Tensor<T, D, RowMajor> TensorRm ## T ## D; \
-  bp::to_python_converter<TensorRm ## T ## D, EigenTensorToPython<TensorRm ## T ## D> >();
+  bp::to_python_converter<TensorRm ## T ## D, EigenTensorToPython<TensorRm ## T ## D> >(); \
+  void ANONYMOUS_FUNCTION()
 
 #define TENSOR_CONV(T, D) \
   typedef Tensor<T, D> Tensor ## T ## D; \
-  EIGEN_TENSOR_CONVERTER(Tensor ## T ## D);
+  EIGEN_TENSOR_CONVERTER(Tensor ## T ## D); \
+  void ANONYMOUS_FUNCTION()
 
 #endif // EIGEN_VERSION_AT_LEAST(3, 3, 0)
 
@@ -495,6 +505,6 @@ SetupEigenConverters() {
 #endif // EIGEN_VERSION_AT_LEAST(3, 3, 0)
 
 #if PY_VERSION_HEX >= 0x03000000
-  return 0;
+  return nullptr;
 #endif
 }
